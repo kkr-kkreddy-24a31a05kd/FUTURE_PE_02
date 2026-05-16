@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UGC Ads AI Studio | The Future of Content Marketing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #3b82f6; /* Electric Blue */
+            --accent: #10b981;  /* Neon Emerald */
+            --bg-dark: #020617;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+        }
+
+        .page-view {
+            display: none;
+            min-height: 80vh;
+        }
+
+        .page-view.active {
+            display: block;
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .neon-glow-emerald {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+        }
+
+        /* Cursor Glow Effect */
+        #cursor-glow {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(16, 185, 129, 0.02) 50%, rgba(0,0,0,0) 70%);
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease;
+        }
+
+        #canvas-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        /* Nav active state */
+        .nav-link.active {
+            color: var(--accent);
+            position: relative;
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0; width: 100%; height: 2px;
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        /* Scroll Progress */
+        #scroll-progress {
+            position: fixed;
+            top: 0; left: 0; height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            z-index: 100;
+            width: 0%;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        .btn-hover-effect {
+            transition: all 0.3s ease;
+        }
+        .btn-hover-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px var(--accent);
+        }
+
+        /* Floating elements */
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        .floating { animation: floating 4s ease-in-out infinite; }
+
+        /* Timeline connector */
+        .timeline-line {
+            position: absolute;
+            left: 24px; top: 0; bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--primary), var(--accent), transparent);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="scroll-progress"></div>
+    <div id="canvas-bg"></div>
+    <div id="cursor-glow"></div>
+
+    <nav class="fixed top-0 w-full z-50 px-6 py-6 pointer-events-none">
+        <div class="max-w-7xl mx-auto flex justify-between items-center glass rounded-2xl px-6 py-3 pointer-events-auto">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="navigateTo('home')">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-xl flex items-center justify-center text-white font-bold shadow-lg group-hover:rotate-12 transition-transform">U</div>
+                <span class="text-xl font-bold tracking-tighter">UGC STUDIO <span class="text-emerald-400">AI</span></span>
+            </div>
+            
+            <div class="hidden xl:flex items-center gap-6 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                <button onclick="navigateTo('home')" class="nav-link hover:text-white transition-all px-2">Home</button>
+                <button onclick="navigateTo('features')" class="nav-link hover:text-white transition-all px-2">Features</button>
+                <button onclick="navigateTo('platforms')" class="nav-link hover:text-white transition-all px-2">Platforms</button>
+                <button onclick="navigateTo('generator')" class="nav-link hover:text-white transition-all px-2 text-emerald-400">AI Studio</button>
+                <button onclick="navigateTo('brand')" class="nav-link hover:text-white transition-all px-2">Brand Voice</button>
+                <button onclick="navigateTo('workflow')" class="nav-link hover:text-white transition-all px-2">Workflow</button>
+                <button onclick="navigateTo('pricing')" class="nav-link hover:text-white transition-all px-2">Pricing</button>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="navigateTo('generator')" class="hidden sm:block px-5 py-2.5 bg-emerald-500 text-black rounded-xl font-black text-[11px] uppercase tracking-widest btn-hover-effect">Get Started</button>
+                <button class="lg:hidden w-10 h-10 flex items-center justify-center text-white" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="fixed inset-0 bg-black/95 z-[60] hidden flex-col items-center justify-center gap-8 p-10">
+        <button class="absolute top-10 right-10 text-3xl" onclick="toggleMobileMenu()"><i class="fas fa-times"></i></button>
+        <button onclick="navigateTo('home'); toggleMobileMenu()" class="text-2xl font-bold">Home</button>
+        <button onclick="navigateTo('features'); toggleMobileMenu()" class="text-2xl font-bold">Features</button>
+        <button onclick="navigateTo('generator'); toggleMobileMenu()" class="text-2xl font-bold text-emerald-400">AI Studio</button>
+        <button onclick="navigateTo('pricing'); toggleMobileMenu()" class="text-2xl font-bold">Pricing</button>
+        <button onclick="navigateTo('contact'); toggleMobileMenu()" class="text-2xl font-bold">Contact</button>
+    </div>
+
+    <main class="pt-32 pb-20 px-6">
+        
+        <section id="home" class="page-view active">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="space-y-8">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                        AI-Driven Creative Intelligence
+                    </div>
+                    <h1 class="text-5xl lg:text-7xl xl:text-8xl font-black leading-[1.05] tracking-tighter">
+                        AI Content <br> Marketing <br> using <span class="gradient-text">UGC Ads</span>
+                    </h1>
+                    <p class="text-lg text-gray-400 max-w-lg leading-relaxed">
+                        The definitive engine for high-converting short-form content. Generate viral hooks, ad scripts, and creative strategies in seconds.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="navigateTo('generator')" class="px-8 py-4 bg-emerald-500 text-black font-black rounded-2xl flex items-center gap-3 btn-hover-effect">
+                            Generate Ad Script <i class="fas fa-wand-magic-sparkles"></i>
+                        </button>
+                        <button onclick="navigateTo('features')" class="px-8 py-4 glass text-white font-bold rounded-2xl hover:bg-white/5 transition-all">
+                            Explore Ecosystem
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-6 pt-10 border-t border-white/5">
+                        <div class="space-y-1">
+                            <div class="text-3xl font-black text-white">10K+</div>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Ads Generated</div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="text-3xl font-black text-emerald-400">5X</div>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Faster Results</div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="text-3xl font-black text-blue-400">95%</div>
+                            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">CTR Boost</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="glass p-8 rounded-[2.5rem] border-white/10 floating relative z-10">
+                        <div class="flex gap-1.5 mb-6">
+                            <div class="w-3 h-3 rounded-full bg-red-500/30"></div>
+                            <div class="w-3 h-3 rounded-full bg-emerald-500/30"></div>
+                            <div class="w-3 h-3 rounded-full bg-blue-500/30"></div>
+                        </div>
+                        <div class="space-y-5">
+                            <div class="h-4 w-2/3 bg-white/5 rounded-full"></div>
+                            <div class="h-4 w-full bg-white/5 rounded-full"></div>
+                            <div class="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
+                                <p class="text-xs font-mono text-emerald-400 leading-relaxed">
+                                    [AI SCRIPT ENGINE]: Analyzing D2C Audience signals... <br>
+                                    [RESULT]: Creating "Curiosity Gap" script... <br>
+                                    "I bet you didn't know this sleep hack exists..."
+                                </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="w-8 h-8 rounded-full bg-blue-500/20"></div>
+                                <div class="flex-1 h-8 bg-white/5 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute -top-10 -right-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px]"></div>
+                    <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="page-view">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16 space-y-4">
+                    <h2 class="text-4xl md:text-5xl font-black tracking-tighter">Engineered for <span class="text-emerald-400">Growth</span></h2>
+                    <p class="text-gray-500 max-w-2xl mx-auto">Every tool is built using AIDA, PAS, and emotional psychology frameworks to ensure performance.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Feature Card 1 -->
+                    <div class="glass p-8 rounded-3xl hover:border-emerald-500/30 transition-all cursor-pointer group" onclick="showFeatureDetail('UGC Scripting', 'Dynamic scripts that feel organic and authentic to the platform.')">
+                        <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 mb-6 group-hover:scale-110 transition-all">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-3">UGC Scripting</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">Dynamic scripts designed to feel authentic and blend seamlessly with organic feeds.</p>
+                    </div>
+                    <!-- Feature Card 2 -->
+                    <div class="glass p-8 rounded-3xl hover:border-blue-500/30 transition-all cursor-pointer group">
+                        <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:scale-110 transition-all">
+                            <i class="fas fa-magnet"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-3">Hook Vault</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">100+ AI-optimized formulas to grab attention in the first 0.5 seconds of the scroll.</p>
+                    </div>
+                    <!-- Feature Card 3 -->
+                    <div class="glass p-8 rounded-3xl hover:border-emerald-500/30 transition-all cursor-pointer group">
+                        <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 mb-6 group-hover:scale-110 transition-all">
+                            <i class="fas fa-bolt-lightning"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-3">Problem-Solution AI</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">Instantly identify core pain points and bridge them to your product's unique value prop.</p>
+                    </div>
+                    <!-- Feature Card 4 -->
+                    <div class="glass p-8 rounded-3xl hover:border-blue-500/30 transition-all cursor-pointer group">
+                        <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:scale-110 transition-all">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-3">Multi-Platform</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">Adapt content styles for TikTok, Reels, and Shorts automatically based on trend data.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="platforms" class="page-view">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-black mb-4">Optimized for <span class="text-blue-500">Every Feed</span></h2>
+                    <p class="text-gray-500">Platform-specific intelligence that follows native algorithm trends.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- TikTok -->
+                    <div class="glass p-8 rounded-[2rem] hover:scale-105 transition-all border-emerald-500/10">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-2xl">
+                                <i class="fab fa-tiktok"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">TikTok Ads</h3>
+                        </div>
+                        <ul class="space-y-4 text-sm">
+                            <li class="flex gap-3 text-emerald-400 font-bold"><i class="fas fa-check-circle"></i> Low-fi aesthetic</li>
+                            <li class="flex gap-3 text-gray-400"><i class="fas fa-info-circle"></i> Fast-paced editing</li>
+                            <li class="flex gap-3 text-gray-400"><i class="fas fa-info-circle"></i> Trending sound hooks</li>
+                        </ul>
+                        <div class="mt-8 p-4 bg-white/5 rounded-xl text-[11px] font-mono text-gray-400 italic">
+                            "You won't believe what I found on TikTok today..."
+                        </div>
+                    </div>
+                    <!-- Reels -->
+                    <div class="glass p-8 rounded-[2rem] hover:scale-105 transition-all border-blue-500/10">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-2xl">
+                                <i class="fab fa-instagram text-pink-500"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">IG Reels</h3>
+                        </div>
+                        <ul class="space-y-4 text-sm">
+                            <li class="flex gap-3 text-blue-400 font-bold"><i class="fas fa-check-circle"></i> Aesthetic visuals</li>
+                            <li class="flex gap-3 text-gray-400"><i class="fas fa-info-circle"></i> High-quality lighting</li>
+                            <li class="flex gap-3 text-gray-400"><i class="fas fa-info-circle"></i> Value-first hooks</li>
+                        </ul>
+                    </div>
+                    <!-- YouTube Shorts -->
+                    <div class="glass p-8 rounded-[2rem] hover:scale-105 transition-all border-emerald-500/10">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-2xl">
+                                <i class="fab fa-youtube text-red-500"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">YT Shorts</h3>
+                        </div>
+                        <ul class="space-y-4 text-sm">
+                            <li class="flex gap-3 text-emerald-400 font-bold"><i class="fas fa-check-circle"></i> Direct CTA</li>
+                            <li class="flex gap-3 text-gray-400"><i class="fas fa-info-circle"></i> Narrative loops</li>
+                            <li class="flex gap-3 text-gray-400"><i class="fas fa-info-circle"></i> Quick-cut storytelling</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="generator" class="page-view">
+            <div class="max-w-5xl mx-auto">
+                <div class="glass p-10 rounded-[3rem] border-white/5 shadow-2xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        <div class="space-y-6">
+                            <div>
+                                <h2 class="text-3xl font-black mb-2">AI Creator <span class="text-emerald-400">Studio</span></h2>
+                                <p class="text-gray-500 text-sm">Fill in your product data to synthesize content.</p>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Product Name</label>
+                                    <input type="text" id="gen-prod" placeholder="e.g. Aura Water Filter" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-emerald-500 transition-all text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Target Audience</label>
+                                    <input type="text" id="gen-aud" placeholder="e.g. Health-conscious parents" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-emerald-500 transition-all text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Platform</label>
+                                        <select id="gen-plat" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-emerald-500 text-sm appearance-none">
+                                            <option>TikTok</option>
+                                            <option>Instagram</option>
+                                            <option>YouTube</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Tone</label>
+                                        <select id="gen-tone" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-emerald-500 text-sm appearance-none">
+                                            <option>Energetic</option>
+                                            <option>Relatable</option>
+                                            <option>Urgent</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button onclick="runStudioGenerator()" id="studio-btn" class="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-600/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
+                                    Synthesize Script <i class="fas fa-microchip"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="relative min-h-[400px]">
+                            <div id="studio-empty" class="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+                                <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center text-3xl text-white/20 mb-4 animate-pulse">
+                                    <i class="fas fa-sparkles"></i>
+                                </div>
+                                <p class="text-gray-600 italic text-sm">Waiting for creative input...</p>
+                            </div>
+
+                            <div id="studio-loader" class="absolute inset-0 hidden flex-col items-center justify-center bg-black/40 backdrop-blur-md rounded-3xl z-20">
+                                <div class="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                                <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Processing Brand Brain...</span>
+                            </div>
+
+                            <div id="studio-results" class="hidden h-full flex flex-col space-y-4">
+                                <div class="p-5 glass rounded-2xl border-emerald-500/20">
+                                    <h4 class="text-emerald-500 text-[9px] font-black uppercase mb-2">Viral Hook</h4>
+                                    <p id="res-hook" class="text-sm font-bold italic"></p>
+                                </div>
+                                <div class="flex-grow p-5 glass rounded-2xl overflow-y-auto max-h-[300px]">
+                                    <h4 class="text-blue-500 text-[9px] font-black uppercase mb-3">Script Flow</h4>
+                                    <p id="res-script" class="text-sm text-gray-400 leading-relaxed"></p>
+                                </div>
+                                <div class="p-4 glass rounded-2xl flex justify-between items-center">
+                                    <div class="text-[9px] text-gray-500 font-bold uppercase">Ready to Export</div>
+                                    <button class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-all"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="brand" class="page-view">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-black mb-4">Adaptable <span class="text-emerald-400">Intelligence</span></h2>
+                    <p class="text-gray-500">Switch tones to match your specific brand archetype.</p>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                    <button onclick="switchBrandTone('d2c')" class="tone-btn p-6 glass rounded-3xl border-white/5 hover:border-emerald-500/50 transition-all text-center group active">
+                        <i class="fas fa-shopping-bag text-2xl mb-4 group-hover:scale-110 transition-transform"></i>
+                        <div class="text-xs font-black uppercase tracking-widest">D2C Brand</div>
+                    </button>
+                    <button onclick="switchBrandTone('saas')" class="tone-btn p-6 glass rounded-3xl border-white/5 hover:border-blue-500/50 transition-all text-center group">
+                        <i class="fas fa-cloud text-2xl mb-4 group-hover:scale-110 transition-transform"></i>
+                        <div class="text-xs font-black uppercase tracking-widest">SaaS Co.</div>
+                    </button>
+                    <button onclick="switchBrandTone('creator')" class="tone-btn p-6 glass rounded-3xl border-white/5 hover:border-emerald-500/50 transition-all text-center group">
+                        <i class="fas fa-user-astronaut text-2xl mb-4 group-hover:scale-110 transition-transform"></i>
+                        <div class="text-xs font-black uppercase tracking-widest">Creator</div>
+                    </button>
+                    <button onclick="switchBrandTone('local')" class="tone-btn p-6 glass rounded-3xl border-white/5 hover:border-blue-500/50 transition-all text-center group">
+                        <i class="fas fa-store text-2xl mb-4 group-hover:scale-110 transition-transform"></i>
+                        <div class="text-xs font-black uppercase tracking-widest">Local Biz</div>
+                    </button>
+                </div>
+
+                <div id="brand-preview" class="glass p-10 rounded-[3rem] border-emerald-500/10">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <div>
+                            <h3 id="brand-title" class="text-2xl font-black mb-4">Direct-to-Consumer Mode</h3>
+                            <p id="brand-desc" class="text-sm text-gray-500 mb-8">Focus on unboxing, lifestyle aesthetics, and clear benefit-driven hooks. Perfect for physical products.</p>
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                    <span class="text-xs font-bold text-gray-300">Emotional connection</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                    <span class="text-xs font-bold text-gray-300">Visual problem-solving</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-white/5 rounded-2xl border border-white/10 italic">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-emerald-500 block mb-2">Example Output</span>
+                            <p id="brand-example" class="text-sm text-gray-300 leading-relaxed">"Look at how this change my morning routine forever. I was struggling with skin irritation until I found this..."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="workflow" class="page-view">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-black mb-4">The <span class="text-blue-500">Blueprint</span></h2>
+                    <p class="text-gray-500">From zero to viral content in 6 systematic steps.</p>
+                </div>
+                
+                <div class="relative space-y-12">
+                    <div class="timeline-line"></div>
+                    
+                    <div class="relative pl-16 group">
+                        <div class="absolute left-0 top-0 w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold z-10 group-hover:scale-110 transition-transform">1</div>
+                        <div class="glass p-8 rounded-3xl">
+                            <h3 class="font-bold mb-2">Product Profiling</h3>
+                            <p class="text-sm text-gray-500">Input your product details and USP. Our AI breaks down the core psychology of your offer.</p>
+                        </div>
+                    </div>
+
+                    <div class="relative pl-16 group">
+                        <div class="absolute left-0 top-0 w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-black font-bold z-10 group-hover:scale-110 transition-transform">2</div>
+                        <div class="glass p-8 rounded-3xl">
+                            <h3 class="font-bold mb-2">Audience Deep Dive</h3>
+                            <p class="text-sm text-gray-500">Mapping pain points, desires, and platform behaviors of your target customer.</p>
+                        </div>
+                    </div>
+
+                    <div class="relative pl-16 group">
+                        <div class="absolute left-0 top-0 w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold z-10 group-hover:scale-110 transition-transform">3</div>
+                        <div class="glass p-8 rounded-3xl">
+                            <h3 class="font-bold mb-2">Hook Synthesis</h3>
+                            <p class="text-sm text-gray-500">Generating 5-10 high-impact hooks to stop the scroll instantly.</p>
+                        </div>
+                    </div>
+
+                    <div class="relative pl-16 group">
+                        <div class="absolute left-0 top-0 w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-black font-bold z-10 group-hover:scale-110 transition-transform">4</div>
+                        <div class="glass p-8 rounded-3xl">
+                            <h3 class="font-bold mb-2">Script Architecture</h3>
+                            <p class="text-sm text-gray-500">Creating the full narrative flow using proven UGC marketing frameworks.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="page-view">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-black mb-4">Simple <span class="text-emerald-400">Scaling</span></h2>
+                    <p class="text-gray-500">Pick a plan to unlock your brand's creative potential.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                    <!-- Basic -->
+                    <div class="glass p-10 rounded-[2.5rem] border-white/5 hover:border-emerald-500/20 transition-all flex flex-col">
+                        <div class="text-gray-500 font-bold mb-4 uppercase text-[10px] tracking-widest">Starter</div>
+                        <div class="text-5xl font-black mb-6">$49<span class="text-sm text-gray-600 font-normal">/mo</span></div>
+                        <ul class="space-y-4 mb-10 text-sm flex-grow">
+                            <li class="flex items-center gap-3"><i class="fas fa-check text-emerald-500"></i> 20 Script Gens</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check text-emerald-500"></i> Viral Hook Library</li>
+                            <li class="flex items-center gap-3 opacity-30"><i class="fas fa-times"></i> Custom Tones</li>
+                        </ul>
+                        <button class="w-full py-4 glass rounded-2xl font-bold hover:bg-white hover:text-black transition-all">Get Started</button>
+                    </div>
+                    <!-- Pro -->
+                    <div class="glass p-12 rounded-[3rem] border-emerald-500/40 bg-emerald-500/5 relative shadow-2xl scale-105 flex flex-col">
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-black px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Best ROI</div>
+                        <div class="text-emerald-400 font-bold mb-4 uppercase text-[10px] tracking-widest">Pro Studio</div>
+                        <div class="text-6xl font-black mb-6">$129<span class="text-sm text-gray-600 font-normal">/mo</span></div>
+                        <ul class="space-y-4 mb-10 text-sm flex-grow">
+                            <li class="flex items-center gap-3"><i class="fas fa-check text-emerald-500"></i> Unlimited Scripts</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check text-emerald-500"></i> Advanced Hook AI</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check text-emerald-500"></i> Platform Intelligence</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check text-emerald-500"></i> Multi-Brand Voices</li>
+                        </ul>
+                        <button class="w-full py-5 bg-emerald-500 text-black font-black rounded-2xl hover:scale-105 transition-all">Go Pro Now</button>
+                    </div>
+                    <!-- Agency -->
+                    <div class="glass p-10 rounded-[2.5rem] border-white/5 hover:border-blue-500/20 transition-all flex flex-col">
+                        <div class="text-gray-500 font-bold mb-4 uppercase text-[10px] tracking-widest">Enterprise</div>
+                        <div class="text-5xl font-black mb-6">$399<span class="text-sm text-gray-600 font-normal">/mo</span></div>
+                        <ul class="space-y-4 mb-10 text-sm flex-grow">
+                            <li class="flex items-center gap-3"><i class="fas fa-check text-blue-500"></i> Custom API Access</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check text-blue-500"></i> White-label Studio</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check text-blue-500"></i> Dedicated Manager</li>
+                        </ul>
+                        <button class="w-full py-4 glass rounded-2xl font-bold hover:bg-white hover:text-black transition-all">Contact Sales</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="py-20 border-t border-white/5 bg-black/30">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="col-span-1 md:col-span-1 space-y-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-black font-bold">U</div>
+                    <span class="text-lg font-bold">UGC STUDIO</span>
+                </div>
+                <p class="text-xs text-gray-500 leading-relaxed">Pioneering AI-driven content marketing for the next generation of brands and creators.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 glass rounded-full flex items-center justify-center hover:text-emerald-400 transition-all"><i class="fab fa-x-twitter"></i></a>
+                    <a href="#" class="w-10 h-10 glass rounded-full flex items-center justify-center hover:text-emerald-400 transition-all"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-xs font-black uppercase tracking-widest mb-6">Platform</h4>
+                <ul class="space-y-4 text-xs text-gray-500">
+                    <li><button onclick="navigateTo('features')" class="hover:text-emerald-400">AI Features</button></li>
+                    <li><button onclick="navigateTo('generator')" class="hover:text-emerald-400">Content Studio</button></li>
+                    <li><button onclick="navigateTo('pricing')" class="hover:text-emerald-400">Pricing</button></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-xs font-black uppercase tracking-widest mb-6">Company</h4>
+                <ul class="space-y-4 text-xs text-gray-500">
+                    <li><a href="#" class="hover:text-emerald-400">About Us</a></li>
+                    <li><a href="#" class="hover:text-emerald-400">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-emerald-400">Terms of Use</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-xs font-black uppercase tracking-widest mb-6">Newsletter</h4>
+                <div class="space-y-4">
+                    <input type="email" placeholder="your@email.com" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-emerald-500">
+                    <button class="w-full py-3 bg-white text-black font-black rounded-xl text-xs uppercase tracking-widest hover:bg-emerald-500 transition-all">Join Labs</button>
+                </div>
+            </div>
+        </div>
+        <p class="text-center mt-20 text-[9px] font-bold text-gray-700 uppercase tracking-[0.4em]">© 2024 UGC STUDIO AI. ZERO YELLOW USED IN PRODUCTION.</p>
+    </footer>
+
+    <!-- Floating Chatbot -->
+    <div id="ai-chatbot" class="fixed bottom-10 right-10 z-[100]">
+        <button onclick="toggleChat()" class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-2xl hover:scale-110 transition-transform neon-glow-emerald">
+            <i class="fas fa-comment-dots text-xl"></i>
+        </button>
+        <div id="chat-window" class="absolute bottom-20 right-0 w-80 glass rounded-3xl p-6 hidden border-blue-500/30">
+            <h4 class="text-sm font-bold mb-2">AI Assistant</h4>
+            <p class="text-[10px] text-gray-400 mb-4">How can I help with your ad strategy today?</p>
+            <div class="space-y-2 mb-4 max-h-40 overflow-y-auto" id="chat-msgs">
+                <div class="p-2 bg-blue-500/10 rounded-lg text-[10px]">Hello! I'm here to help you navigate UGC Studio.</div>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="chat-input" placeholder="Ask a question..." class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] focus:outline-none">
+                <button onclick="sendChat()" class="px-3 bg-blue-600 rounded-lg text-[10px]"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-[100] items-center justify-center p-6">
+        <div class="glass max-w-lg w-full p-10 rounded-[3rem] text-center space-y-6">
+            <div id="modal-icon" class="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto text-3xl"></div>
+            <h3 id="modal-title" class="text-3xl font-black"></h3>
+            <p id="modal-body" class="text-gray-400"></p>
+            <button onclick="closeModal()" class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        // --- STREAMING_CHUNK: Initializing Core JavaScript Logic... ---
+        
+        // Navigation Logic
+        function navigateTo(pageId) {
+            const views = document.querySelectorAll('.page-view');
+            const links = document.querySelectorAll('.nav-link');
+            
+            views.forEach(v => v.classList.remove('active'));
+            links.forEach(l => {
+                l.classList.remove('active');
+                if(l.getAttribute('onclick')?.includes(pageId)) l.classList.add('active');
+            });
+
+            const target = document.getElementById(pageId);
+            if(target) {
+                target.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // Update Hash without scrolling
+                history.pushState(null, null, `#${pageId}`);
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        }
+
+        // Three.js Particle Background
+        function initBackground() {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('canvas-bg').appendChild(renderer.domElement);
+
+            const geometry = new THREE.BufferGeometry();
+            const count = 1500;
+            const pos = new Float32Array(count * 3);
+            for(let i=0; i<count*3; i++) pos[i] = (Math.random() - 0.5) * 1000;
+            geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+            const material = new THREE.PointsMaterial({ size: 2, color: 0x10b981, transparent: true, opacity: 0.2 });
+            const points = new THREE.Points(geometry, material);
+            scene.add(points);
+            camera.position.z = 500;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                points.rotation.y += 0.0005;
+                points.rotation.x += 0.0002;
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // --- STREAMING_CHUNK: AI Generator Integration... ---
+        async function runStudioGenerator() {
+            const prod = document.getElementById('gen-prod').value;
+            const aud = document.getElementById('gen-aud').value;
+            const plat = document.getElementById('gen-plat').value;
+            const tone = document.getElementById('gen-tone').value;
+
+            if(!prod || !aud) return alert("Please specify product and audience.");
+
+            const loader = document.getElementById('studio-loader');
+            const empty = document.getElementById('studio-empty');
+            const results = document.getElementById('studio-results');
+            const btn = document.getElementById('studio-btn');
+
+            loader.classList.remove('hidden');
+            empty.classList.add('hidden');
+            btn.disabled = true;
+
+            const sys = "You are a UGC Ads expert. Output JSON: {hook, script}.";
+            const userMsg = `Generate a ${tone} ${plat} script for ${prod} targeting ${aud}.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userMsg }] }],
+                        generationConfig: { 
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    "hook": { "type": "STRING" },
+                                    "script": { "type": "STRING" }
+                                }
+                            }
+                        },
+                        systemInstruction: { parts: [{ text: sys }] }
+                    })
+                });
+
+                const data = await response.json();
+                const content = JSON.parse(data.candidates[0].content.parts[0].text);
+
+                results.classList.remove('hidden');
+                typeEffect('res-hook', content.hook, 20);
+                typeEffect('res-script', content.script, 10);
+            } catch (err) {
+                console.error(err);
+                results.classList.remove('hidden');
+                document.getElementById('res-hook').innerText = "System overloaded. Try again.";
+            } finally {
+                loader.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        function typeEffect(id, text, speed) {
+            const el = document.getElementById(id);
+            el.innerText = "";
+            let i = 0;
+            const timer = setInterval(() => {
+                if(i < text.length) {
+                    el.innerText += text.charAt(i);
+                    i++;
+                } else { clearInterval(timer); }
+            }, speed);
+        }
+
+        // Brand Voice Switcher
+        const brandVoices = {
+            d2c: {
+                title: "D2C Brand Mode",
+                desc: "Focused on aesthetic visuals, relatable pain points, and benefit-led hooks. Best for Shopify & E-commerce.",
+                example: "I honestly didn't think this could fix my morning bloat until I tried it for a week..."
+            },
+            saas: {
+                title: "SaaS & Tech Mode",
+                desc: "Focus on efficiency, features, and professional problem-solving. Clean visuals and high-energy value delivery.",
+                example: "Stop wasting 10 hours a week on manual data entry. Here is the AI tool we built for you..."
+            },
+            creator: {
+                title: "Creator / Personal Brand",
+                desc: "Authentic, raw, and high-energy. Focus on storytelling and personal transformation.",
+                example: "POV: You just quit your 9-5 and found the secret to freedom. Here's exactly how I did it..."
+            },
+            local: {
+                title: "Local Business / Brick & Mortar",
+                desc: "Focus on community, location proximity, and immediate 'visit us' CTAs.",
+                example: "If you're in the downtown area, you need to check out this hidden gem before everyone finds out..."
+            }
+        };
+
+        function switchBrandTone(type) {
+            const btns = document.querySelectorAll('.tone-btn');
+            btns.forEach(b => b.classList.remove('border-emerald-500/50', 'border-blue-500/50', 'active'));
+            
+            const selected = brandVoices[type];
+            document.getElementById('brand-title').innerText = selected.title;
+            document.getElementById('brand-desc').innerText = selected.desc;
+            document.getElementById('brand-example').innerText = selected.example;
+
+            // Simple visual active state
+            event.currentTarget.classList.add('active');
+        }
+
+        // Global UI Interactions
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('scroll-progress').style.width = scrolled + "%";
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            const glow = document.getElementById('cursor-glow');
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+
+        function showFeatureDetail(title, body) {
+            const m = document.getElementById('modal-backdrop');
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = body;
+            document.getElementById('modal-icon').innerHTML = `<i class="fas fa-microchip"></i>`;
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-backdrop').classList.add('hidden');
+            document.getElementById('modal-backdrop').classList.remove('flex');
+        }
+
+        function toggleChat() {
+            document.getElementById('chat-window').classList.toggle('hidden');
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chat-input');
+            if(!input.value) return;
+            const msg = document.createElement('div');
+            msg.className = "p-2 bg-white/5 rounded-lg text-[10px] text-right";
+            msg.innerText = input.value;
+            document.getElementById('chat-msgs').appendChild(msg);
+            input.value = "";
+        }
+
+        // Start everything
+        window.onload = () => {
+            initBackground();
+            // Handle Hash on load
+            const hash = window.location.hash.replace('#', '');
+            if(hash) navigateTo(hash);
+            
+            // GSAP Animations
+            gsap.registerPlugin(ScrollTrigger);
+            gsap.from(".page-view.active h1", { duration: 1, y: 30, opacity: 0, ease: "power4.out" });
+        }
+    </script>
+</body>
+</html>
